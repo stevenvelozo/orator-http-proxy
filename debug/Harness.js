@@ -2,9 +2,9 @@ const libFable = require('fable');
 
 const defaultFableSettings = (
 	{
-		Product:'Orator-Proxy',
+		Product:'Orator-Static',
 		ProductVersion: '1.0.0',
-		APIServerPort: 8765
+		APIServerPort: 8766
 	});
 
 // Initialize Fable
@@ -26,9 +26,14 @@ let tmpAnticipate = _Fable.newAnticipate();
 // Initialize the Orator server
 tmpAnticipate.anticipate(_Orator.initialize.bind(_Orator));
 
+// Add the static server service
+const libOratorServeStatic = require(`../source/Orator-Static-Server.js`);
+_Fable.serviceManager.addServiceType('OratorServeStatic', libOratorServeStatic);
+_Fable.serviceManager.instantiateServiceProvider('OratorServeStatic');
+
 // Create a simple custom endpoint on the server.
 tmpAnticipate.anticipate(
-	(fStageComplete)=>
+	(fNext)=>
 	{
 		// Create an endpoint.  This can also be done after the service is started.
 		_Orator.serviceServer.get
@@ -42,11 +47,16 @@ tmpAnticipate.anticipate(
 				return fNext();
 			}
 		);
-		return fStageComplete();
+		return fNext();
 	});
 
-// Proxy all /1.0/ requests to the locally-running bookstore service (you need to run this from https://github.com/stevenvelozo/retold-harness ... it's a one-liner to start the service)
-
+// Map the ./serve/ folder to the root of the server.
+tmpAnticipate.anticipate(
+	(fNext)=>
+	{
+		_Fable.serviceManager.OratorServeStatic.addStaticRoute(_Orator, `${__dirname}/serve/`, 'index.html');
+		return fNext();
+	});
 
 // Now start the service server.
 tmpAnticipate.anticipate(_Orator.startService.bind(_Orator));
