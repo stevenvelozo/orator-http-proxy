@@ -26,13 +26,41 @@ class OratorStaticFileService extends FableServiceProviderBase
 			this.log.trace('API proxy url falling back to settings...', { badUrl: this.options.proxyUrl });
 			this.options.proxyUrl = this.fable.settings.APIProxyUrl;
 		}
+
+		// By jacking up the log level, the static server will become more and more communicative.
+		this.logLevel = (`LogLevel` in this.options) ? this.options.LogLevel
+						: `OratorStaticServerLogLevel` in this.fable.settings ? this.fable.settings.OratorStaticServerLogLevel
+						: 0;
+
+		// The magic hosts option will look for the leftmost subdomain and use it as a subfolder.
+		this.magicHostsEnabled = (`MagicHosts` in this.options) ? this.options.LogLevel
+						: `OratorStaticServerMagicHosts` in this.fable.settings ? this.fable.settings.OratorStaticServerLogLevel
+						: false;
+
+		// The default folder to serve from
+		this.defaultFolder = (`DefaultFolder` in this.options) ? this.options.DefaultFolder
+						: (`OratorStaticServerDefaultFolder` in this.fable.settings) ? this.fable.settings.OratorStaticServerDefaultFolder
+						: false;
+
+		// Whether or not to auto map the route
+		this.autoMap = (`AutoMap` in this.options) ? this.options.AutoMap
+						: (`OratorStaticServerAutoMap` in this.fable.settings) ? this.fable.settings.OratorStaticServerAutoMap
+						: false;
+
+		this.fable.instantiateServiceProviderIfNotExists('FilePersistence');
+
+		if (this.autoMap && this.defaultFolder)
+		{
+			this.log.info(`Auto-mapping static route [/*] to files in ==> [${this.defaultFolder}] default file [index.html]`);
+			this.addStaticRoute(this.defaultFolder);
+		}
 	}
 
 
 	/**
 	 * Brought over from old orator and ported to work in the same way.
 	 *
-	 * @param {object} pOrator The Orator instance.
+	 * @param {object} this.fable.Orator The Orator instance.
 	 * @param {string} pFilePath The path on disk that we are serving files from.
 	 * @param {string?} pDefaultFile (optional) The default file served if no specific file is requested.
 	 * @param {string?} pRoute (optional) The route matcher that will be used. Defaults to everything.
@@ -40,11 +68,21 @@ class OratorStaticFileService extends FableServiceProviderBase
 	 * @param {object?} pParams (optional) Additional parameters to pass to serve-static.
 	 * @return {boolean} true if the handler was successfully installed, otherwise false.
 	 */
-	addStaticRoute(pOrator, pFilePath, pDefaultFile, pRoute, pRouteStrip, pParams)
+	addStaticRoute(pFilePath, pDefaultFile, pRoute, pRouteStrip, pParams)
 	{
+		if (!'Orator' in this.fable)
+		{
+			this.fable.log.error('Orator must be initialized before adding a static route.');
+			return false;
+		}
+		if (!'serviceServer' in this.fable.Orator)
+		{
+			this.fable.log.error('Orator must have a service server initialized before adding a static route.');
+			return false;
+		}
 		if (typeof(pFilePath) !== 'string')
 		{
-				pOrator.fable.log.error('A file path must be passed in as part of the server.');
+				this.fable.log.error('A file path must be passed in as part of the server.');
 				return false;
 		}
 
@@ -55,39 +93,59 @@ class OratorStaticFileService extends FableServiceProviderBase
 		// Default to serving index.html
 		const tmpDefaultFile = (typeof(pDefaultFile) === 'undefined') ? 'index.html' : pDefaultFile;
 
-		pOrator.fable.log.info('Orator mapping static route to files: '+tmpRoute+' ==> '+pFilePath+' '+tmpDefaultFile);
+		this.fable.log.info('Orator mapping static route to files: '+tmpRoute+' ==> '+pFilePath+' '+tmpDefaultFile);
 
 		// Add the route
-		pOrator.serviceServer.server.get(tmpRoute, (pRequest, pResponse, fNext) =>
+		this.fable.Orator.serviceServer.get(tmpRoute, (pRequest, pResponse, fNext) =>
 		{
-				// The split removes query string parameters so they are ignored by our static web server.
-				// The substring cuts that out from the file path so relative files serve from the folders and server
-				//FIXME: .....
-				// See if there is a magic subdomain put at the beginning of a request.
-				// If there is, then we need to see if there is a subfolder and add that to the file path
-				let tmpHostSet = pRequest.headers.host.split('.');
-				let tmpPotentialSubfolderMagicHost = false;
 				let servePath = pFilePath;
-				// Check if there are more than one host in the host header (this will be 127 a lot)
-				if (tmpHostSet.length > 1)
+
+				if (this.magicHostsEnabled)
 				{
-					tmpPotentialSubfolderMagicHost = tmpHostSet[0];
-				}
-				if (tmpPotentialSubfolderMagicHost)
-				{
-					// Check if the subfolder exists
-					let tmpPotentialSubfolder = servePath + tmpPotentialSubfolderMagicHost;
-					if (this.fable.FilePersistence.libFS.existsSync(tmpPotentialSubfolder))
+					// See if there is a magic subdomain put at the beginning of a request.
+					// If there is, then we need to see if there is a subfolder and add that to the file path
+					let tmpHostSet = pRequest.headers.host.split('.');
+					let tmpPotentialSubfolderMagicHost = false;
+					// Check if there are more than one host in the host header (this will be 127 a lot)
+					if (tmpHostSet.length > 1)
 					{
-						// If it does, then we need to add it to the file path
-						servePath = `${tmpPotentialSubfolder}/`;
+						tmpPotentialSubfolderMagicHost = tmpHostSet[0];
+					}
+					if (tmpPotentialSubfolderMagicHost)
+					{
+						// Check if the subfolder exists
+						let tmpPotentialSubfolder = servePath + tmpPotentialSubfolderMagicHost;
+						if (this.fable.FilePersistence.libFS.existsSync(tmpPotentialSubfolder))
+						{
+							// If it does, then we need to add it to the file path
+							servePath = `${tmpPotentialSubfolder}/`;
+							if (this.logLevel > 1)
+							{
+								this.fable.log.trace(`Orator static magic mapped subdomain ${tmpPotentialSubfolderMagicHost}, altering servepath to [${servePath}]`);
+							}
+						}
 					}
 				}
+
 				pRequest.url = pRequest.url.split('?')[0].substr(tmpRouteStrip.length) || '/';
 				pRequest.path = function()
 				{
 						return pRequest.url;
 				};
+
+				if (this.logLevel > 0)
+				{
+					this.fable.log.trace(`Static request from host [${pRequest.headers.host}] URL [${pRequest.url}]`,
+						{
+							Host: pRequest.headers.host,
+							UserAgent: pRequest.headers['user-agent'],
+							Method: pRequest.method,
+							ClientInterface: {Family: pRequest.connection.remoteFamily, Address: pRequest.connection.remoteAddress, Port: pRequest.connection.remotePort},
+							ServerInterface: {Family: pRequest.connection.localFamily, Address: pRequest.connection.localAddress, Port: pRequest.connection.localPort},
+							URL: pRequest.url
+						}
+					);
+				}
 				const tmpServe = libServeStatic(servePath, Object.assign({ index: tmpDefaultFile }, pParams));
 				tmpServe(pRequest, pResponse, libFinalHandler(pRequest, pResponse));
 		});

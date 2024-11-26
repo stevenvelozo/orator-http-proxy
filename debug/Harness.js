@@ -4,7 +4,10 @@ const defaultFableSettings = (
 	{
 		Product:'Orator-Static',
 		ProductVersion: '1.0.0',
-		APIServerPort: 8766
+		APIServerPort: 8766,
+
+		OratorStaticServerDefaultFolder: `${__dirname}/serve/`,
+		OratorStaticServerAutoMap: true
 	});
 
 // Initialize Fable
@@ -26,11 +29,6 @@ let tmpAnticipate = _Fable.newAnticipate();
 // Initialize the Orator server
 tmpAnticipate.anticipate(_Orator.initialize.bind(_Orator));
 
-// Add the static server service
-const libOratorServeStatic = require(`../source/Orator-Static-Server.js`);
-_Fable.serviceManager.addServiceType('OratorServeStatic', libOratorServeStatic);
-_Fable.serviceManager.instantiateServiceProvider('OratorServeStatic');
-
 // Create a simple custom endpoint on the server.
 tmpAnticipate.anticipate(
 	(fNext)=>
@@ -50,13 +48,18 @@ tmpAnticipate.anticipate(
 		return fNext();
 	});
 
-// Map the ./serve/ folder to the root of the server.
-tmpAnticipate.anticipate(
-	(fNext)=>
-	{
-		_Fable.serviceManager.OratorServeStatic.addStaticRoute(_Orator, `${__dirname}/serve/`, 'index.html');
-		return fNext();
-	});
+// Add the orator static server service
+const libOratorServeStatic = require(`../source/Orator-Static-Server.js`);
+_Fable.serviceManager.addServiceType('OratorServeStatic', libOratorServeStatic);
+_Fable.serviceManager.instantiateServiceProvider('OratorServeStatic', {LogLevel: 2});
+
+// Manually map the ./serve/ folder to the root of the server.
+// tmpAnticipate.anticipate(
+// 	(fNext)=>
+// 	{
+// 		_Fable.OratorServeStatic.addStaticRoute(`${__dirname}/serve/`, 'index.html');
+// 		return fNext();
+// 	});
 
 // Now start the service server.
 tmpAnticipate.anticipate(_Orator.startService.bind(_Orator));
