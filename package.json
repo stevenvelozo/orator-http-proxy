@@ -1,8 +1,8 @@
 {
-    "name": "orator-static-server",
+    "name": "orator-http-proxy",
     "version": "1.0.1",
-    "description": "Orator static file server.",
-    "main": "source/Orator-Static-Server.js",
+    "description": "Orator http proxy pass-through.",
+    "main": "source/Orator-HTTP-Proxy.js",
     "scripts": {
         "test": "./node_modules/mocha/bin/_mocha --exit -u tdd -R spec",
         "coverage": "./node_modules/.bin/nyc --reporter=lcov --reporter=text-lcov ./node_modules/mocha/bin/_mocha -- -u tdd -R spec",
@@ -29,18 +29,17 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/stevenvelozo/orator-static-server.git"
+        "url": "git+https://github.com/stevenvelozo/orator-http-proxy.git"
     },
     "author": "steven velozo <steven@velozo.com>",
     "license": "MIT",
     "bugs": {
-        "url": "https://github.com/stevenvelozo/orator-static-server/issues"
+        "url": "https://github.com/stevenvelozo/orator-http-proxy/issues"
     },
-    "homepage": "https://github.com/stevenvelozo/orator-static-server#readme",
+    "homepage": "https://github.com/stevenvelozo/orator-http-proxy#readme",
     "dependencies": {
-        "finalhandler": "^1.3.1",
-        "orator-serviceserver-base": "^1.0.1",
-        "serve-static": "^1.16.2"
+        "http-proxy": "^1.18.1",
+        "orator-serviceserver-base": "^1.0.1"
     },
     "devDependencies": {
         "fable": "^3.0.145",

@@ -10,7 +10,7 @@ const Assert = Chai.assert;
 
 const libFable = require('fable');
 const libOrator = require('orator');
-const libOratorStaticServer = require('../source/Orator-Static-Server.js');
+const libOratorHTTPProxy = require('../source/Orator-HTTP-Proxy.js');
 
 //const libSuperTest = require('supertest');
 
@@ -33,10 +33,10 @@ suite
 						let tmpFable = new libFable();
 
 						// Add Restify as the default service server type
-						tmpFable.addServiceType('OratorStaticServer', libOratorStaticServer);
+						tmpFable.addServiceType('OratorHTTPProxy', libOratorHTTPProxy);
 
 						// We can safely create the service now if we want, or after Orator is created.  As long as it's before we initialize orator.
-						let tmpOratorServiceServerRestify = tmpFable.instantiateServiceProvider('OratorStaticServer', {});
+						let tmpOratorServiceServerRestify = tmpFable.instantiateServiceProvider('OratorHTTPProxy', {});
 
 						// Add Orator as a service
 						tmpFable.addServiceType('Orator', libOrator);

@@ -2,12 +2,11 @@ const libFable = require('fable');
 
 const defaultFableSettings = (
 	{
-		Product:'Orator-Static',
+		Product:'Orator-Proxy',
 		ProductVersion: '1.0.0',
-		APIServerPort: 8766,
+		APIServerPort: 8765,
 
-		OratorStaticServerDefaultFolder: `${__dirname}/serve/`,
-		OratorStaticServerAutoMap: true
+		OratorHTTPProxyDestinationURL: 'http://127.0.0.1:8086/'
 	});
 
 // Initialize Fable
@@ -31,12 +30,12 @@ tmpAnticipate.anticipate(_Orator.initialize.bind(_Orator));
 
 // Create a simple custom endpoint on the server.
 tmpAnticipate.anticipate(
-	(fNext)=>
+	(fStageComplete)=>
 	{
 		// Create an endpoint.  This can also be done after the service is started.
 		_Orator.serviceServer.get
 		(
-			'/test/:hash',
+			'/1.0/test/:hash',
 			(pRequest, pResponse, fNext) =>
 			{
 				// Send back the request parameters
@@ -45,21 +44,21 @@ tmpAnticipate.anticipate(
 				return fNext();
 			}
 		);
+		return fStageComplete();
+	});
+
+// Add the http proxy service
+const libOratorServeStatic = require(`../source/Orator-HTTP-Proxy.js`);
+_Fable.serviceManager.addServiceType('OratorHTTPProxy', libOratorServeStatic);
+_Fable.serviceManager.instantiateServiceProvider('OratorHTTPProxy', {LogLevel: 2});
+// Proxy all /1.0/ requests to the locally-running bookstore service (you need to run this from https://github.com/stevenvelozo/retold-harness ... it's a one-liner to start the service)
+tmpAnticipate.anticipate(
+	(fNext)=>
+	{
+		_Fable.OratorHTTPProxy.connectProxyRoutes();
 		return fNext();
 	});
 
-// Add the orator static server service
-const libOratorServeStatic = require(`../source/Orator-Static-Server.js`);
-_Fable.serviceManager.addServiceType('OratorServeStatic', libOratorServeStatic);
-_Fable.serviceManager.instantiateServiceProvider('OratorServeStatic', {LogLevel: 2});
-
-// Manually map the ./serve/ folder to the root of the server.
-// tmpAnticipate.anticipate(
-// 	(fNext)=>
-// 	{
-// 		_Fable.OratorServeStatic.addStaticRoute(`${__dirname}/serve/`, 'index.html');
-// 		return fNext();
-// 	});
 
 // Now start the service server.
 tmpAnticipate.anticipate(_Orator.startService.bind(_Orator));
