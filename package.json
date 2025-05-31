@@ -1,6 +1,6 @@
 {
     "name": "orator-http-proxy",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "description": "Orator http proxy pass-through.",
     "main": "source/Orator-HTTP-Proxy.js",
     "scripts": {
@@ -42,9 +42,9 @@
         "orator-serviceserver-base": "^1.0.1"
     },
     "devDependencies": {
-        "fable": "^3.0.145",
-        "orator": "^5.0.0",
+        "fable": "^3.0.150",
+        "orator": "^5.0.1",
         "orator-serviceserver-restify": "^2.0.3",
-        "quackage": "^1.0.33"
+        "quackage": "^1.0.38"
     }
 }

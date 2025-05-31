@@ -41,7 +41,7 @@ class OratorAPIProxy extends FableServiceProviderBase
 	}
 
 	/**
-	 * Create handlers for each HTTP verb on /1.0/* that proxy requests to the configured proxy URL.
+	 * Create handlers for each HTTP verb on the request prefix list to proxy requests to the configured proxy URL.
 	 */
 	connectProxyRoutes(pRequestPrefixList, pProxyURL)
 	{
