@@ -1,6 +1,6 @@
 {
     "name": "orator-http-proxy",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "description": "Orator http proxy pass-through.",
     "main": "source/Orator-HTTP-Proxy.js",
     "scripts": {
