@@ -4,8 +4,8 @@
     "description": "Orator http proxy pass-through.",
     "main": "source/Orator-HTTP-Proxy.js",
     "scripts": {
-        "test": "./node_modules/mocha/bin/_mocha --exit -u tdd -R spec",
-        "coverage": "./node_modules/.bin/nyc --reporter=lcov --reporter=text-lcov ./node_modules/mocha/bin/_mocha -- -u tdd -R spec",
+        "test": "npx mocha -u tdd --exit -R spec",
+        "coverage": "npx quack coverage",
         "start": "node debug/Harness.js",
         "tests": "npx mocha -u tdd --exit -R spec --grep"
     },
