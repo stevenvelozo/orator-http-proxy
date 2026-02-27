@@ -104,3 +104,55 @@ dist
 
 # TernJS port file
 .tern-port
+
+# Added by quackage update-node-gitignore
+
+# Test Environment
+debug/testenv
+
+# Quackage takes care of these for me!
+.babelrc
+.browserslistrc
+.browserslistrc-BACKUP
+.gulpfile-quackage.js
+.gulpfile-quackage-config.json
+
+# I just dislike this one.
+.DS_Store
+
+# Logs
+.pnpm-debug.log*
+
+# Snowpack dependency directory (https://snowpack.dev/)
+web_modules/
+
+# Optional stylelint cache
+.stylelintcache
+
+# dotenv environment variable files
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local
+
+# parcel-bundler cache (https://parceljs.org/)
+.parcel-cache
+
+# Next.js build output
+out
+
+# vuepress v2.x temp and cache directory
+.temp
+
+# Docusaurus cache and generated files
+.docusaurus
+
+# Stores VSCode versions used for testing VSCode extensions
+.vscode-test
+
+# yarn v2
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
