@@ -1,4 +1,4 @@
-# Orator HTTP Proxy <small>1</small>
+# Orator HTTP Proxy
 
 > HTTP proxy pass-through for Orator service servers
 

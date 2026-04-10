@@ -1,0 +1,7 @@
+{
+	"Name": "orator-http-proxy",
+	"Version": "1.0.5",
+	"Description": "Orator http proxy pass-through.",
+	"GeneratedAt": "2026-04-10T01:50:02.895Z",
+	"GitCommit": "191252c"
+}
